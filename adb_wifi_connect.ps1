@@ -1,14 +1,101 @@
 param(
   [string]$Serial = $null,
-  [switch]$UseEmulator
+  [switch]$UseEmulator,
+  [switch]$SkipUpdate
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Resolve adb path (prefer script folder)
-$adb = Join-Path $PSScriptRoot 'adb.exe'
-if (-not (Test-Path $adb)) { $adb = 'adb.exe' }
+# Function to download and extract platform tools
+function Install-PlatformTools {
+    param([string]$TargetPath)
+
+    Write-Host "[*] Platform tools not found. Downloading..."
+
+    $platformToolsUrl = "https://dl.google.com/android/repository/platform-tools-latest-windows.zip"
+    $tempZip = Join-Path $env:TEMP "platform-tools.zip"
+    $parentDir = Split-Path $TargetPath -Parent
+
+    try {
+        # Create directory if it doesn't exist
+        if (-not (Test-Path $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+            Write-Host "[+] Created directory: $parentDir"
+        }
+
+        # Download platform tools
+        Write-Host "[*] Downloading from Google servers..."
+        $ProgressPreference = 'SilentlyContinue'
+        Invoke-WebRequest -Uri $platformToolsUrl -OutFile $tempZip -UseBasicParsing
+        Write-Host "[+] Download complete!"
+
+        # Extract
+        Write-Host "[*] Extracting platform tools..."
+        Expand-Archive -Path $tempZip -DestinationPath $parentDir -Force
+        Write-Host "[+] Extraction complete!"
+
+        # Cleanup
+        Remove-Item $tempZip -Force
+        Write-Host "[+] Platform tools installed successfully!`n"
+
+    } catch {
+        Write-Host "[!] Failed to download platform tools: $_"
+        throw "Could not install platform tools. Please download manually from https://developer.android.com/tools/releases/platform-tools"
+    }
+}
+
+# Function to check and update platform tools
+function Update-PlatformTools {
+    param([string]$AdbPath)
+
+    try {
+        Write-Host "[*] Checking for platform tools updates..."
+
+        # Get current version
+        $versionOutput = & $AdbPath version 2>&1 | Select-Object -First 1
+        if ($versionOutput -match 'Version\s+(\d+\.\d+\.\d+)') {
+            $currentVersion = $matches[1]
+            Write-Host "[*] Current version: $currentVersion"
+            Write-Host "[*] Platform tools are installed. Run with -Force to reinstall.`n"
+        }
+    } catch {
+        Write-Host "[!] Could not check version: $_`n"
+    }
+}
+
+# Determine platform tools path
+$platformToolsDir = Join-Path $PSScriptRoot "platform-tools"
+$adb = Join-Path $platformToolsDir 'adb.exe'
+
+# Check if platform tools exist, if not download them
+if (-not (Test-Path $adb)) {
+    $downloadsPath = Join-Path $env:USERPROFILE "Downloads\platform-tools"
+    $adbDownloads = Join-Path $downloadsPath 'adb.exe'
+
+    if (Test-Path $adbDownloads) {
+        # Use existing platform tools in Downloads
+        $adb = $adbDownloads
+        Write-Host "[*] Using platform tools from Downloads folder`n"
+    } else {
+        # Download platform tools to script directory
+        Install-PlatformTools -TargetPath $platformToolsDir
+        if (-not (Test-Path $adb)) {
+            throw "Platform tools installation failed. ADB not found at: $adb"
+        }
+    }
+} else {
+    # Platform tools exist, optionally check for updates
+    if (-not $SkipUpdate.IsPresent) {
+        Update-PlatformTools -AdbPath $adb
+    }
+}
+
+# Fallback to system PATH if still not found
+if (-not (Test-Path $adb)) {
+    Write-Host "[*] Checking system PATH for adb.exe..."
+    $adb = 'adb.exe'
+}
 
 # Choose transport flags
 $adbArgsUSB = @()

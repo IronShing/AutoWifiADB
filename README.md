@@ -9,9 +9,11 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 ## Features
 
 - **One-Click Setup** - Just double-click and go!
+- **Auto-Downloads Platform Tools** - No manual ADB installation needed!
 - **Automatic IP Detection** - No manual IP address entry needed
 - **Multiple Device Support** - Works with physical devices and emulators
-- **Smart ADB Detection** - Automatically finds `adb.exe` in the script folder or system PATH
+- **Smart ADB Detection** - Automatically finds or downloads `adb.exe`
+- **Version Checking** - Displays current platform tools version
 - **Error Handling** - Clear error messages guide you when something goes wrong
 - **Desktop Friendly** - Simple CMD launcher for easy access
 
@@ -20,36 +22,46 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 ## Prerequisites
 
 - **Windows** with PowerShell 5.0 or later
-- **Android Debug Bridge (ADB)** - [Download Platform Tools](https://developer.android.com/tools/releases/platform-tools)
+- **Internet connection** (for automatic platform tools download, if needed)
 - **Android device** with:
   - USB Debugging enabled
   - Connected to the same Wi-Fi network as your computer
   - Initially connected via USB cable
 
+**Note:** Android Platform Tools (ADB) will be automatically downloaded if not found!
+
 ---
 
 ## Installation
 
-### Option 1: Quick Setup (Recommended)
+### Super Simple Setup (Recommended)
 
-1. **Download Platform Tools**
-   - Download Android SDK Platform Tools from [here](https://developer.android.com/tools/releases/platform-tools)
-   - Extract to `%USERPROFILE%\Downloads\platform-tools`
+1. **Download the script**
+   - Download `adb_wifi_connect.ps1` and `Run-ADB-WiFi-Connect.cmd`
 
-2. **Copy the PowerShell Script**
-   - Copy `adb_wifi_connect.ps1` to `%USERPROFILE%\Downloads\platform-tools\`
+2. **Place the files**
+   - Put both files in any folder (e.g., `Downloads`, `Documents`, or Desktop)
 
-3. **Create Desktop Shortcut**
-   - Copy `Run-ADB-WiFi-Connect.cmd` to your Desktop
-   - Double-click to run!
+3. **Run it!**
+   - Double-click `Run-ADB-WiFi-Connect.cmd`
+   - Platform tools will auto-download on first run if needed
 
-### Option 2: Custom Location
+That's it! The script handles everything else automatically.
 
-1. Place both `adb_wifi_connect.ps1` and `adb.exe` in the same folder
-2. Run the PowerShell script directly:
+### Option 2: Use Existing Platform Tools
+
+If you already have Platform Tools installed:
+
+1. **Place the script with your platform tools**
+   - Copy `adb_wifi_connect.ps1` to your existing `platform-tools` folder
+   - Example: `C:\Users\YourName\Downloads\platform-tools\`
+
+2. **Run the PowerShell script directly:**
    ```powershell
    powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1
    ```
+
+The script will automatically detect and use your existing ADB installation.
 
 ---
 
@@ -110,10 +122,12 @@ The script displays the reconnect command at the end.
 
 ## How It Works
 
-1. **Device Detection** - Checks for a connected USB device
-2. **IP Discovery** - Queries the device's Wi-Fi IP address via `ip` commands
-3. **TCP/IP Switch** - Runs `adb tcpip 5555` to enable wireless debugging
-4. **Connection** - Connects to the device wirelessly via `adb connect`
+1. **Platform Tools Check** - Checks for ADB, downloads if missing
+2. **Version Check** - Displays current ADB version (can be skipped with `-SkipUpdate`)
+3. **Device Detection** - Checks for a connected USB device
+4. **IP Discovery** - Queries the device's Wi-Fi IP address via `ip` commands
+5. **TCP/IP Switch** - Runs `adb tcpip 5555` to enable wireless debugging
+6. **Connection** - Connects to the device wirelessly via `adb connect`
 
 ---
 
@@ -158,6 +172,16 @@ The script displays the reconnect command at the end.
 - Re-run the script with USB connected
 - Keep your device awake during initial connection
 
+### Platform Tools Download Fails
+
+**Cause**: No internet connection or firewall blocking
+
+**Solutions**:
+- Check your internet connection
+- Download manually from [Google](https://developer.android.com/tools/releases/platform-tools)
+- Extract to script folder or `Downloads\platform-tools`
+- Check firewall/antivirus settings
+
 ---
 
 ## File Structure
@@ -179,6 +203,7 @@ AutoWifiADB/
 |-----------|------|-------------|---------|
 | `-Serial` | String | Specify device by serial number | `-Serial ABC123XYZ` |
 | `-UseEmulator` | Switch | Connect to an emulator instead of physical device | `-UseEmulator` |
+| `-SkipUpdate` | Switch | Skip version checking for faster execution | `-SkipUpdate` |
 
 ---
 
@@ -200,16 +225,40 @@ AutoWifiADB/
 
 ---
 
-## Platform Tools Location
+## Auto-Download Feature
 
-The CMD launcher expects Platform Tools in:
+The script intelligently manages Android Platform Tools:
+
+### Download Priority
+
+1. **Script Directory** - Checks for `platform-tools` folder next to the script
+2. **Downloads Folder** - Checks `%USERPROFILE%\Downloads\platform-tools`
+3. **Auto-Download** - Downloads latest platform tools from Google if not found
+4. **System PATH** - Falls back to system-installed ADB
+
+### First Run
+
+On first run without existing platform tools:
+- Downloads latest version from Google (~10MB)
+- Extracts automatically to `platform-tools` subfolder
+- Ready to use immediately
+
+### Subsequent Runs
+
+- Displays current ADB version
+- Uses existing installation
+- Use `-SkipUpdate` flag to skip version check for faster execution
+
+### Manual Platform Tools Location
+
+If you prefer a specific location, the CMD launcher can be edited to point to:
 ```
 %USERPROFILE%\Downloads\platform-tools\
 ```
 
 Example: `C:\Users\YourName\Downloads\platform-tools\`
 
-If you want to use a different location, edit the `SCRIPT` variable in `Run-ADB-WiFi-Connect.cmd`.
+Edit the `SCRIPT` variable in `Run-ADB-WiFi-Connect.cmd` to change the location.
 
 ---
 
