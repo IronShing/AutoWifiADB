@@ -13,6 +13,8 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 - **Automatic IP Detection** - No manual IP address entry needed
 - **Multiple Device Support** - Works with physical devices and emulators
 - **Smart ADB Detection** - Automatically finds or downloads `adb.exe`
+- **Auto Server Restart** - Automatically restarts ADB server for reliable connections
+- **Connection Verification** - Verifies device is online, retries if offline
 - **Version Checking** - Displays current platform tools version
 - **Error Handling** - Clear error messages guide you when something goes wrong
 - **Desktop Friendly** - Simple CMD launcher for easy access
@@ -127,7 +129,10 @@ The script displays the reconnect command at the end.
 3. **Device Detection** - Checks for a connected USB device
 4. **IP Discovery** - Queries the device's Wi-Fi IP address via `ip` commands
 5. **TCP/IP Switch** - Runs `adb tcpip 5555` to enable wireless debugging
-6. **Connection** - Connects to the device wirelessly via `adb connect`
+6. **Server Restart** - Automatically kills and restarts ADB server for fresh connection
+7. **Wireless Connection** - Connects to the device wirelessly via `adb connect`
+8. **Verification** - Verifies device is online (not offline), retries up to 3 times if needed
+9. **Success** - Displays connection info and reconnect command
 
 ---
 
@@ -162,6 +167,19 @@ The script displays the reconnect command at the end.
   ```powershell
   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
   ```
+
+### Device Shows as "Offline"
+
+**Cause**: ADB server needs restart or authorization issue
+
+**Solutions**:
+- The script now automatically handles this with retry logic
+- If still offline after 3 attempts:
+  1. Check your phone screen for an "Allow USB debugging?" prompt
+  2. Ensure you checked "Always allow from this computer"
+  3. Unplug USB cable, wait 2 seconds, plug back in, and re-run
+  4. Manually run: `adb kill-server` then re-run the script
+  5. Disable and re-enable "USB Debugging" in Developer Options
 
 ### Connection Drops
 

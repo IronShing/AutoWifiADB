@@ -128,12 +128,63 @@ Write-Host ("[*] Phone Wi-Fi IP: {0}" -f $phone_ip)
 $port = 5555
 Write-Host ("[*] Switching adbd to TCP/IP on port {0}..." -f $port)
 & $adb @adbArgsUSB tcpip $port | Out-Null
-Start-Sleep -Seconds 1
+Write-Host "[*] Waiting for device to switch modes..."
+Start-Sleep -Seconds 2
+
+Write-Host "[*] Restarting ADB server..."
+& $adb kill-server | Out-Null
+Start-Sleep -Milliseconds 500
+& $adb start-server 2>&1 | Out-Null
+Start-Sleep -Milliseconds 500
 
 Write-Host ("[*] Connecting to {0}:{1} ..." -f $phone_ip, $port)
-& $adb connect ("{0}:{1}" -f $phone_ip, $port)
+$connectOutput = & $adb connect ("{0}:{1}" -f $phone_ip, $port) 2>&1
+Write-Host $connectOutput
+
+# Verify connection is not offline
+Write-Host "[*] Verifying connection..."
+Start-Sleep -Milliseconds 500
+
+$deviceTarget = "{0}:{1}" -f $phone_ip, $port
+$retryCount = 0
+$maxRetries = 3
+$connectionOk = $false
+
+while ($retryCount -lt $maxRetries -and -not $connectionOk) {
+    $devicesOutput = & $adb devices | Out-String
+
+    if ($devicesOutput -match "$deviceTarget\s+device\s") {
+        $connectionOk = $true
+        Write-Host "[+] Connection verified - device is online!"
+        break
+    } elseif ($devicesOutput -match "$deviceTarget\s+offline") {
+        $retryCount++
+        if ($retryCount -lt $maxRetries) {
+            Write-Host "[!] Device is offline, retrying... (attempt $retryCount/$maxRetries)"
+            & $adb disconnect $deviceTarget | Out-Null
+            Start-Sleep -Seconds 1
+            & $adb connect $deviceTarget | Out-Null
+            Start-Sleep -Seconds 1
+        }
+    } else {
+        $retryCount++
+        if ($retryCount -lt $maxRetries) {
+            Write-Host "[!] Device not found, retrying... (attempt $retryCount/$maxRetries)"
+            Start-Sleep -Seconds 1
+            & $adb connect $deviceTarget | Out-Null
+            Start-Sleep -Seconds 1
+        }
+    }
+}
 
 Write-Host "`n[*] Current adb devices:"
 & $adb devices -l
+
+if (-not $connectionOk) {
+    Write-Host "`n[!] Warning: Device may be offline. Try:"
+    Write-Host "    1. Unplug and replug USB cable, then re-run this script"
+    Write-Host "    2. Run: adb kill-server && adb connect $deviceTarget"
+    Write-Host "    3. Disable and re-enable USB debugging on your device"
+}
 
 Write-Host ("`n[OK] Done. To reconnect later:`n    {0} connect {1}:{2}" -f $adb, $phone_ip, $port)
