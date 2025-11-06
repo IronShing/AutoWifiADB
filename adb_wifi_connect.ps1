@@ -1,7 +1,8 @@
 param(
   [string]$Serial = $null,
   [switch]$UseEmulator,
-  [switch]$SkipUpdate
+  [switch]$SkipUpdate,
+  [switch]$ForceUpdate
 )
 
 Set-StrictMode -Version Latest
@@ -47,20 +48,44 @@ function Install-PlatformTools {
 
 # Function to check and update platform tools
 function Update-PlatformTools {
-    param([string]$AdbPath)
+    param(
+        [string]$AdbPath,
+        [string]$PlatformToolsDir,
+        [switch]$Force
+    )
 
     try {
-        Write-Host "[*] Checking for platform tools updates..."
-
         # Get current version
         $versionOutput = & $AdbPath version 2>&1 | Select-Object -First 1
         if ($versionOutput -match 'Version\s+(\d+\.\d+\.\d+)') {
             $currentVersion = $matches[1]
-            Write-Host "[*] Current version: $currentVersion"
-            Write-Host "[*] Platform tools are installed. Run with -Force to reinstall.`n"
+            Write-Host "[*] Current platform tools version: $currentVersion"
+        } else {
+            Write-Host "[*] Could not determine current version"
+        }
+
+        if ($Force) {
+            Write-Host "[*] Force update requested. Downloading latest platform tools..."
+
+            # Kill ADB server first to release file locks
+            try {
+                & $AdbPath kill-server 2>&1 | Out-Null
+                Start-Sleep -Milliseconds 500
+            } catch {
+                # Ignore errors
+            }
+
+            # Download and install
+            Install-PlatformTools -TargetPath $PlatformToolsDir
+            Write-Host "[+] Platform tools updated successfully!`n"
+            return $true
+        } else {
+            Write-Host "[*] Use -ForceUpdate to download the latest version.`n"
+            return $false
         }
     } catch {
-        Write-Host "[!] Could not check version: $_`n"
+        Write-Host "[!] Could not check/update platform tools: $_`n"
+        return $false
     }
 }
 
@@ -75,8 +100,9 @@ if (-not (Test-Path $adb)) {
 
     if (Test-Path $adbDownloads) {
         # Use existing platform tools in Downloads
+        $platformToolsDir = $downloadsPath
         $adb = $adbDownloads
-        Write-Host "[*] Using platform tools from Downloads folder`n"
+        Write-Host "[*] Using platform tools from Downloads folder"
     } else {
         # Download platform tools to script directory
         Install-PlatformTools -TargetPath $platformToolsDir
@@ -84,11 +110,16 @@ if (-not (Test-Path $adb)) {
             throw "Platform tools installation failed. ADB not found at: $adb"
         }
     }
-} else {
-    # Platform tools exist, optionally check for updates
-    if (-not $SkipUpdate.IsPresent) {
-        Update-PlatformTools -AdbPath $adb
-    }
+}
+
+# Check for updates or force update
+if ($ForceUpdate.IsPresent) {
+    Update-PlatformTools -AdbPath $adb -PlatformToolsDir $platformToolsDir -Force
+    # Reload ADB path after update
+    $adb = Join-Path $platformToolsDir 'adb.exe'
+} elseif ((Test-Path $adb) -and -not $SkipUpdate.IsPresent) {
+    # Platform tools exist, show version
+    Update-PlatformTools -AdbPath $adb -PlatformToolsDir $platformToolsDir
 }
 
 # Fallback to system PATH if still not found

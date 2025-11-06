@@ -110,6 +110,25 @@ Or:
 powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1 -UseEmulator
 ```
 
+#### Update Platform Tools
+
+To update to the latest Android Platform Tools:
+
+```cmd
+Run-ADB-WiFi-Connect.cmd -ForceUpdate
+```
+
+Or:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1 -ForceUpdate
+```
+
+This will:
+- Download the latest platform tools from Google
+- Replace your existing installation
+- Ensure you have the newest ADB version
+
 #### Reconnect Later
 
 After the initial setup, you can reconnect without USB:
@@ -175,11 +194,24 @@ The script displays the reconnect command at the end.
 **Solutions**:
 - The script now automatically handles this with retry logic
 - If still offline after 3 attempts:
-  1. Check your phone screen for an "Allow USB debugging?" prompt
-  2. Ensure you checked "Always allow from this computer"
-  3. Unplug USB cable, wait 2 seconds, plug back in, and re-run
-  4. Manually run: `adb kill-server` then re-run the script
-  5. Disable and re-enable "USB Debugging" in Developer Options
+  1. **Update platform tools** - Run with `-ForceUpdate` flag
+  2. Check your phone screen for an "Allow USB debugging?" prompt
+  3. Ensure you checked "Always allow from this computer"
+  4. Unplug USB cable, wait 2 seconds, plug back in, and re-run
+  5. Manually run: `adb kill-server` then re-run the script
+  6. Disable and re-enable "USB Debugging" in Developer Options
+
+### "ADB Server is Out of Date"
+
+**Cause**: Platform tools need updating
+
+**Solutions**:
+- Run with `-ForceUpdate` flag to download latest platform tools:
+  ```cmd
+  Run-ADB-WiFi-Connect.cmd -ForceUpdate
+  ```
+- This will automatically download and install the latest version
+- The script will handle killing the old server and starting fresh
 
 ### Connection Drops
 
@@ -222,6 +254,7 @@ AutoWifiADB/
 | `-Serial` | String | Specify device by serial number | `-Serial ABC123XYZ` |
 | `-UseEmulator` | Switch | Connect to an emulator instead of physical device | `-UseEmulator` |
 | `-SkipUpdate` | Switch | Skip version checking for faster execution | `-SkipUpdate` |
+| `-ForceUpdate` | Switch | Force download and install latest platform tools | `-ForceUpdate` |
 
 ---
 
@@ -266,6 +299,21 @@ On first run without existing platform tools:
 - Displays current ADB version
 - Uses existing installation
 - Use `-SkipUpdate` flag to skip version check for faster execution
+- Use `-ForceUpdate` flag to download and install the latest version
+
+### Updating Platform Tools
+
+To update to the latest version at any time:
+
+```cmd
+Run-ADB-WiFi-Connect.cmd -ForceUpdate
+```
+
+This will:
+- Kill the ADB server to release file locks
+- Download the latest platform tools from Google
+- Extract and replace your current installation
+- Automatically use the new version
 
 ### Manual Platform Tools Location
 
