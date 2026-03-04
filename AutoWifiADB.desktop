@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=AutoWifiADB
+Comment=Connect Android device over Wi-Fi using ADB
+Exec=bash -c 'cd "$HOME/AutoWifiADB" && ./adb_wifi_connect.sh; echo; read -p "Press Enter to close..."'
+Terminal=true
+Type=Application
+Icon=phone
+Categories=Development;
