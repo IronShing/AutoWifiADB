@@ -2,7 +2,7 @@
 
 > **Automatically connect to Android devices over Wi-Fi using ADB**
 
-A simple, user-friendly Windows tool that automatically switches your Android device from USB debugging to wireless ADB debugging with just one click.
+A simple, user-friendly tool for **Windows** and **Linux** that automatically switches your Android device from USB debugging to wireless ADB debugging with just one click (or command).
 
 ---
 
@@ -12,7 +12,8 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 - **Auto-Downloads Platform Tools** - No manual ADB installation needed!
 - **Automatic IP Detection** - No manual IP address entry needed
 - **Multiple Device Support** - Works with physical devices and emulators
-- **Smart ADB Detection** - Automatically finds or downloads `adb.exe`
+- **Cross-Platform** - Works on Windows (PowerShell) and Linux (Bash)
+- **Smart ADB Detection** - Automatically finds or downloads ADB
 - **Auto Server Restart** - Automatically restarts ADB server for reliable connections
 - **Connection Verification** - Verifies device is online, retries if offline
 - **Version Checking** - Displays current platform tools version
@@ -23,7 +24,15 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 
 ## Prerequisites
 
-- **Windows** with PowerShell 5.0 or later
+### Windows
+- PowerShell 5.0 or later
+
+### Linux
+- Bash 4.0 or later
+- `curl` or `wget` (for auto-downloading platform tools)
+- `unzip` (for extracting platform tools)
+
+### Both Platforms
 - **Internet connection** (for automatic platform tools download, if needed)
 - **Android device** with:
   - USB Debugging enabled
@@ -36,7 +45,7 @@ A simple, user-friendly Windows tool that automatically switches your Android de
 
 ## Installation
 
-### Super Simple Setup (Recommended)
+### Windows - Super Simple Setup (Recommended)
 
 1. **Download the script**
    - Download `adb_wifi_connect.ps1` and `Run-ADB-WiFi-Connect.cmd`
@@ -48,19 +57,39 @@ A simple, user-friendly Windows tool that automatically switches your Android de
    - Double-click `Run-ADB-WiFi-Connect.cmd`
    - Platform tools will auto-download on first run if needed
 
+### Linux - Super Simple Setup (Recommended)
+
+1. **Download the script**
+   - Download `adb_wifi_connect.sh` and `run-adb-wifi-connect.sh`
+
+2. **Place the files**
+   - Put both files in any folder
+
+3. **Make executable and run!**
+   ```bash
+   chmod +x adb_wifi_connect.sh run-adb-wifi-connect.sh
+   ./run-adb-wifi-connect.sh
+   ```
+   - Platform tools will auto-download on first run if needed
+
 That's it! The script handles everything else automatically.
 
-### Option 2: Use Existing Platform Tools
+### Use Existing Platform Tools
 
 If you already have Platform Tools installed:
 
-1. **Place the script with your platform tools**
-   - Copy `adb_wifi_connect.ps1` to your existing `platform-tools` folder
-   - Example: `C:\Users\YourName\Downloads\platform-tools\`
-
-2. **Run the PowerShell script directly:**
+**Windows:**
+1. Copy `adb_wifi_connect.ps1` to your existing `platform-tools` folder
+2. Run:
    ```powershell
    powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1
+   ```
+
+**Linux:**
+1. Copy `adb_wifi_connect.sh` to your existing `platform-tools` folder
+2. Run:
+   ```bash
+   ./adb_wifi_connect.sh
    ```
 
 The script will automatically detect and use your existing ADB installation.
@@ -73,7 +102,9 @@ The script will automatically detect and use your existing ADB installation.
 
 1. **Connect your Android device via USB**
 2. **Ensure Wi-Fi is enabled** on your device
-3. **Double-click** `Run-ADB-WiFi-Connect.cmd`
+3. **Run the script:**
+   - **Windows:** Double-click `Run-ADB-WiFi-Connect.cmd`
+   - **Linux:** Run `./run-adb-wifi-connect.sh`
 4. **Unplug the USB cable** when prompted
 
 The script will:
@@ -88,40 +119,40 @@ The script will:
 
 If you have multiple devices connected:
 
+**Windows:**
 ```cmd
 Run-ADB-WiFi-Connect.cmd -Serial <DEVICE_SERIAL>
 ```
 
-Or run the PowerShell script directly:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1 -Serial ABC123XYZ
+**Linux:**
+```bash
+./adb_wifi_connect.sh --serial <DEVICE_SERIAL>
 ```
 
 #### Connect to Emulator
 
+**Windows:**
 ```cmd
 Run-ADB-WiFi-Connect.cmd -UseEmulator
 ```
 
-Or:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1 -UseEmulator
+**Linux:**
+```bash
+./adb_wifi_connect.sh --emulator
 ```
 
 #### Update Platform Tools
 
 To update to the latest Android Platform Tools:
 
+**Windows:**
 ```cmd
 Run-ADB-WiFi-Connect.cmd -ForceUpdate
 ```
 
-Or:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File adb_wifi_connect.ps1 -ForceUpdate
+**Linux:**
+```bash
+./adb_wifi_connect.sh --force-update
 ```
 
 This will:
@@ -133,7 +164,7 @@ This will:
 
 After the initial setup, you can reconnect without USB:
 
-```cmd
+```
 adb connect <PHONE_IP>:5555
 ```
 
@@ -176,7 +207,7 @@ The script displays the reconnect command at the end.
 - Connect to a Wi-Fi network
 - Ensure the network allows device-to-device communication
 
-### "Execution Policy" Error
+### "Execution Policy" Error (Windows)
 
 **Cause**: PowerShell script execution is restricted
 
@@ -185,6 +216,16 @@ The script displays the reconnect command at the end.
 - Or run manually:
   ```powershell
   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+  ```
+
+### "Permission denied" Error (Linux)
+
+**Cause**: Script is not executable
+
+**Solutions**:
+- Make it executable:
+  ```bash
+  chmod +x adb_wifi_connect.sh run-adb-wifi-connect.sh
   ```
 
 ### Device Shows as "Offline"
@@ -238,8 +279,10 @@ The script displays the reconnect command at the end.
 
 ```
 AutoWifiADB/
-├── adb_wifi_connect.ps1      # Main PowerShell script
-├── Run-ADB-WiFi-Connect.cmd  # Desktop-friendly launcher
+├── adb_wifi_connect.ps1      # Main PowerShell script (Windows)
+├── Run-ADB-WiFi-Connect.cmd  # Desktop-friendly launcher (Windows)
+├── adb_wifi_connect.sh        # Main Bash script (Linux)
+├── run-adb-wifi-connect.sh    # Launcher script (Linux)
 └── README.md                  # This file
 ```
 
@@ -247,7 +290,7 @@ AutoWifiADB/
 
 ## Parameters Reference
 
-### PowerShell Script Parameters
+### Windows (PowerShell) Parameters
 
 | Parameter | Type | Description | Example |
 |-----------|------|-------------|---------|
@@ -255,6 +298,16 @@ AutoWifiADB/
 | `-UseEmulator` | Switch | Connect to an emulator instead of physical device | `-UseEmulator` |
 | `-SkipUpdate` | Switch | Skip version checking for faster execution | `-SkipUpdate` |
 | `-ForceUpdate` | Switch | Force download and install latest platform tools | `-ForceUpdate` |
+
+### Linux (Bash) Parameters
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `-s`, `--serial` | String | Specify device by serial number | `--serial ABC123XYZ` |
+| `-e`, `--emulator` | Flag | Connect to an emulator instead of physical device | `--emulator` |
+| `--skip-update` | Flag | Skip version checking for faster execution | `--skip-update` |
+| `--force-update` | Flag | Force download and install latest platform tools | `--force-update` |
+| `-h`, `--help` | Flag | Show help message | `--help` |
 
 ---
 
@@ -283,7 +336,7 @@ The script intelligently manages Android Platform Tools:
 ### Download Priority
 
 1. **Script Directory** - Checks for `platform-tools` folder next to the script
-2. **Downloads Folder** - Checks `%USERPROFILE%\Downloads\platform-tools`
+2. **Downloads Folder** - Checks `%USERPROFILE%\Downloads\platform-tools` (Windows) or `~/Downloads/platform-tools` (Linux)
 3. **Auto-Download** - Downloads latest platform tools from Google if not found
 4. **System PATH** - Falls back to system-installed ADB
 
@@ -305,8 +358,14 @@ On first run without existing platform tools:
 
 To update to the latest version at any time:
 
+**Windows:**
 ```cmd
 Run-ADB-WiFi-Connect.cmd -ForceUpdate
+```
+
+**Linux:**
+```bash
+./adb_wifi_connect.sh --force-update
 ```
 
 This will:
@@ -332,7 +391,7 @@ Edit the `SCRIPT` variable in `Run-ADB-WiFi-Connect.cmd` to change the location.
 
 Wireless ADB debugging opens port 5555 on your device. Only use this on trusted networks. To disable wireless debugging:
 
-```cmd
+```
 adb usb
 ```
 
