@@ -3,7 +3,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST_DIR="$HOME/ADB_Pulled"
 
-SCREENSHOT_PATH="/sdcard/Pictures/Screenshots"
+SCREENSHOT_PATH="/sdcard/DCIM/Screenshots"
 CAMERA_PATH="/sdcard/DCIM/Camera"
 
 # --- Device selection ---
@@ -33,9 +33,8 @@ select_device() {
     ADB="adb -s $DEVICE"
 }
 
-# --- Helper: today's date formats ---
-today_screenshot() { date +%Y-%m-%d; }   # Screenshot_2026-02-13-...
-today_camera() { date +%Y%m%d; }          # 20260311_...
+# --- Helper: today's date in YYYYMMDD format ---
+today_date() { date +%Y%m%d; }  # Screenshot_20260312_... / 20260312_...
 
 # --- 1) Get last screenshot ---
 get_last_screenshot() {
@@ -54,10 +53,10 @@ get_last_screenshot() {
 # --- 2) Get all screenshots for today ---
 get_today_screenshots() {
     local today
-    today=$(today_screenshot)
+    today=$(today_date)
     echo "[*] Fetching all screenshots for $today..."
     local files
-    files=$($ADB shell "ls $SCREENSHOT_PATH/ 2>/dev/null | grep 'Screenshot_${today}'" | tr -d '\r')
+    files=$($ADB shell "ls $SCREENSHOT_PATH/ 2>/dev/null | grep '^Screenshot_${today}_'" | tr -d '\r')
     if [[ -z "$files" ]]; then
         echo "[!] No screenshots found for today."
         return 1
@@ -73,7 +72,7 @@ get_today_screenshots() {
 # --- 3) Get all images for today ---
 get_today_images() {
     local today
-    today=$(today_camera)
+    today=$(today_date)
     echo "[*] Fetching all images for $today..."
     local files
     files=$($ADB shell "ls $CAMERA_PATH/ 2>/dev/null | grep '^${today}_'" | tr -d '\r')
@@ -92,7 +91,7 @@ get_today_images() {
 # --- 4) Get last image today ---
 get_last_image_today() {
     local today
-    today=$(today_camera)
+    today=$(today_date)
     echo "[*] Fetching last image for $today..."
     local file
     file=$($ADB shell "ls $CAMERA_PATH/ 2>/dev/null | grep '^${today}_' | sort -r | head -1" | tr -d '\r')
