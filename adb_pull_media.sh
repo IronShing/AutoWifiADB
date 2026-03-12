@@ -41,7 +41,7 @@ today_camera() { date +%Y%m%d; }          # 20260311_...
 get_last_screenshot() {
     echo "[*] Fetching last screenshot..."
     local file
-    file=$($ADB shell "ls $SCREENSHOT_PATH/ 2>/dev/null | sort -r | head -1" | tr -d '\r')
+    file=$($ADB shell "ls $SCREENSHOT_PATH/ 2>/dev/null | grep '^Screenshot_' | sort -r | head -1" | tr -d '\r')
     if [[ -z "$file" ]]; then
         echo "[!] No screenshots found."
         return 1
